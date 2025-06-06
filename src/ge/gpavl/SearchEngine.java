@@ -26,17 +26,6 @@ public class SearchEngine {
     private void initializeEngine() throws IOException {
         Map<String, List<List<String>>> filenameWordMapping = TextFileUtils.getTextFilenameWordMapping();
 
-        statistics.setNumberOfFilesIndexed(filenameWordMapping.size());
-        Map<String, Integer> fileWordCountMapping = getFileWordCountMapping(filenameWordMapping);
-        int totalAmountOfWords = getTotalAmountOfWords(fileWordCountMapping);
-        String smallestFile = getSmallestFile(fileWordCountMapping);
-        String largestFile = getLargestFile(fileWordCountMapping);
-
-        statistics.setTotalAmountOfWords(totalAmountOfWords);
-        statistics.setAverageWordsPerFile();
-        statistics.setSmallestFile(smallestFile);
-        statistics.setLargestFile(largestFile);
-
         index = new HashMap<>();
 
         Set<String> filenameKeySet = filenameWordMapping.keySet();
@@ -50,7 +39,22 @@ public class SearchEngine {
             }
         }
 
+        populateStatistics(filenameWordMapping);
+    }
+
+    private void populateStatistics(Map<String, List<List<String>>> filenameWordMapping) {
+        Map<String, Integer> fileWordCountMapping = getFileWordCountMapping(filenameWordMapping);
+
+        int totalAmountOfWords = getTotalAmountOfWords(fileWordCountMapping);
+        String smallestFile = getSmallestFile(fileWordCountMapping);
+        String largestFile = getLargestFile(fileWordCountMapping);
+
+        statistics.setNumberOfFilesIndexed(filenameWordMapping.size());
         statistics.setNumberOfUniqueWords(index.size());
+        statistics.setTotalAmountOfWords(totalAmountOfWords);
+        statistics.setAverageWordsPerFile();
+        statistics.setSmallestFile(smallestFile);
+        statistics.setLargestFile(largestFile);
     }
 
     private int getTotalAmountOfWords(Map<String, Integer> filenameWordMapping) {
