@@ -7,18 +7,35 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static ge.gpavl.IOUtils.print;
 import static ge.gpavl.TextFileUtils.toLowerCase;
 
 public class SearchEngine {
 
     private Map<String, List<FileLocation>> index;
+    private final Statistics statistics = new Statistics();
 
     public SearchEngine() throws IOException {
-        initializeIndex();
+        initializeEngine();
     }
 
-    private void initializeIndex() throws IOException {
+    public void displayStatistics() {
+        print(statistics);
+    }
+
+    private void initializeEngine() throws IOException {
         Map<String, List<List<String>>> filenameWordMapping = TextFileUtils.getTextFilenameWordMapping();
+
+        statistics.setNumberOfFilesIndexed(filenameWordMapping.size());
+        Map<String, Integer> fileWordCountMapping = getFileWordCountMapping(filenameWordMapping);
+        int totalAmountOfWords = getTotalAmountOfWords(fileWordCountMapping);
+        String smallestFile = getSmallestFile(fileWordCountMapping);
+        String largestFile = getLargestFile(fileWordCountMapping);
+
+        statistics.setTotalAmountOfWords(totalAmountOfWords);
+        statistics.setAverageWordsPerFile();
+        statistics.setSmallestFile(smallestFile);
+        statistics.setLargestFile(largestFile);
 
         index = new HashMap<>();
 
@@ -32,6 +49,38 @@ public class SearchEngine {
                 }
             }
         }
+
+        statistics.setNumberOfUniqueWords(index.size());
+    }
+
+    private int getTotalAmountOfWords(Map<String, Integer> filenameWordMapping) {
+        return filenameWordMapping.keySet().stream().map(filenameWordMapping::get).reduce(0, Integer::sum);
+    }
+
+    private String getSmallestFile(Map<String, Integer> filenameWordMapping) {
+        return filenameWordMapping.keySet().stream().min(Comparator.comparing(filenameWordMapping::get)).get();
+    }
+
+    private String getLargestFile(Map<String, Integer> filenameWordMapping) {
+        return filenameWordMapping.keySet().stream().max(Comparator.comparing(filenameWordMapping::get)).get();
+    }
+
+    private Map<String, Integer> getFileWordCountMapping(Map<String, List<List<String>>> filenameWordMapping) {
+        return filenameWordMapping
+                .keySet()
+                .stream()
+                .collect(
+                        Collectors.toMap(
+                                Function.identity(),
+                                filename -> Math.toIntExact(
+                                        filenameWordMapping
+                                                .get(filename)
+                                                .stream()
+                                                .mapToLong(Collection::size)
+                                                .sum()
+                                )
+                        )
+                );
     }
 
     private void processWord(String filenameKey, String word, int lineIndex) {

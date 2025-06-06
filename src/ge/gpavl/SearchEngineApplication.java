@@ -15,6 +15,7 @@ public class SearchEngineApplication {
     }
 
     public void run() {
+        searchEngine.displayStatistics();
         while (!isFinished) {
             MenuOption menuOption = getChosenMenuOption();
             if (menuOption == MenuOption.Exit) {
